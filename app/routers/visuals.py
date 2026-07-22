@@ -128,3 +128,25 @@ def search_visuals(
         query = query.filter(VisualAsset.type == type)
 
     return query.all()
+
+from fastapi import UploadFile, File, HTTPException
+import shutil
+import os
+
+UPLOAD_DIR = "uploaded_images"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+@router.post("/upload-image")
+async def upload_image(file: UploadFile = File(...)):
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="File must be an image")
+
+    file_path = os.path.join(UPLOAD_DIR, file.filename)
+
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    return {
+        "filename": file.filename,
+        "url": f"/images/{file.filename}"
+    }

@@ -28,3 +28,8 @@ app.include_router(visuals.router)
 @app.get("/")
 def root():
     return {"message": "Visual Catalog API is running!"}
+
+
+from fastapi.staticfiles import StaticFiles
+
+app.mount("/images", StaticFiles(directory="uploaded_images"), name="images")

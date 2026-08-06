@@ -5,7 +5,7 @@ from fastapi.staticfiles import StaticFiles
 # Correct imports
 from database import Base, engine
 import models
-from app.routers import visuals
+from app.routers import visuals_router
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -26,7 +26,7 @@ app.add_middleware(
 )
 
 # Routers
-app.include_router(visuals.router)
+app.include_router(visuals_router.router)
 
 @app.get("/")
 def root():

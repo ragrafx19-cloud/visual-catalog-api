@@ -1,7 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
-from app.database import engine, Base
+# Correct imports
+from database import Base, engine
+import models
 from app.routers import visuals
 
 # Create database tables
@@ -29,7 +32,5 @@ app.include_router(visuals.router)
 def root():
     return {"message": "Visual Catalog API is running!"}
 
-
-from fastapi.staticfiles import StaticFiles
-
-app.mount("/images", StaticFiles(directory="uploaded_images"), name="images")
+# Serve uploaded images
+app.mount("/uploaded_images", StaticFiles(directory="uploaded_images"), name="uploaded_images")

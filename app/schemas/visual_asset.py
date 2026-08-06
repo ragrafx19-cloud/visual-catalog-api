@@ -1,37 +1,25 @@
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel
+from typing import List, Optional
 from datetime import datetime
-from typing import Optional, List
-from enum import Enum
+from app.models.models import VisualType
 
-# Match the SQLAlchemy Enum
-class VisualType(str, Enum):
-    album_cover = "album-cover"
-    poster = "poster"
-    merch = "merch"
-    ai_art = "ai-art"
-    branding = "branding"
-
-# Shared fields
 class VisualAssetBase(BaseModel):
     title: str
     type: VisualType
     description: Optional[str] = None
-    image_url: HttpUrl
+    image_url: Optional[str] = None
     tags: Optional[List[str]] = None
 
-# For POST requests
 class VisualAssetCreate(VisualAssetBase):
     pass
 
-# For PUT requests
 class VisualAssetUpdate(BaseModel):
     title: Optional[str] = None
     type: Optional[VisualType] = None
     description: Optional[str] = None
-    image_url: Optional[HttpUrl] = None
+    image_url: Optional[str] = None
     tags: Optional[List[str]] = None
 
-# For responses
 class VisualAssetResponse(VisualAssetBase):
     id: int
     created_at: datetime

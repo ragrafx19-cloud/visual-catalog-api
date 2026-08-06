@@ -2,9 +2,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-# Correct imports
+# Correct imports based on your new structure
 from database import Base, engine
-import models
+from app.models import models  # <-- IMPORTANT
 from app.routers import visuals_router
 
 # Create database tables

@@ -1,5 +1,10 @@
 fastapi
 uvicorn
+python-multipart
 sqlalchemy
 pydantic
 python-dotenv
+jinja2
+aiofiles
+azure-storage-blob
+psycopg2-binary

@@ -2,12 +2,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-# Correct imports based on your new structure
 from database import Base, engine
 from app.models import models
 from app.routers.visuals_router import router as visuals_router
 
-# Create database tables
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
@@ -16,7 +14,6 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS (allow all for now)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -25,12 +22,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Routers
 app.include_router(visuals_router)
 
 @app.get("/")
 def root():
     return {"message": "Visual Catalog API is running!"}
 
-# Serve uploaded images
 app.mount("/uploaded_images", StaticFiles(directory="uploaded_images"), name="uploaded_images")

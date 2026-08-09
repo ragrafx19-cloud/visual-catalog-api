@@ -1,10 +1,10 @@
 services:
   - type: web
-    name: visual-catalog-api
+    name: visual-catalog-api-y527
     env: python
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port 10000
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: DATABASE_URL
         value: postgresql://visual_catalog_db_user:CcZc2VaSvaFxV0dDwahG5UIHSHwihW47@dpg-d9rvd8m7bikc738lall0-a/visual_catalog_db

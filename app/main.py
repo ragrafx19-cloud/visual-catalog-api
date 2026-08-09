@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from database import Base, engine
+from app.database import Base, engine
 from app.models import models
 from app.routers.visuals_router import router as visuals_router
 

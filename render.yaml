@@ -5,3 +5,6 @@ services:
     plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port 10000
+    envVars:
+      - key: DATABASE_URL
+        value: postgresql://visual_catalog_db_user:CcZc2VaSvaFxV0dDwahG5UIHSHwihW47@dpg-d9rvd8m7bikc738lall0-a/visual_catalog_db

@@ -17,7 +17,7 @@ class VisualAsset(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, nullable=False)
-    type = Column(Enum(VisualType), nullable=False)
+    type = Column(Enum(VisualType, name="visualtype"), nullable=False)
     description = Column(String, nullable=True)
     image_url = Column(String, nullable=False)
     tags = Column(String, nullable=True)  # comma-separated tags

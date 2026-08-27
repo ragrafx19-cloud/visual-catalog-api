@@ -4,7 +4,7 @@ from typing import List, Optional
 import os
 
 from app.database import get_db
-from app.models.models import VisualAsset, VisualType
+from app.models.models import VisualAsset
 from app.models.image import Image
 from app.schemas import (
     VisualAssetCreate,

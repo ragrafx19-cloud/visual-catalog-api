@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Text, TIMESTAMP, func
 from sqlalchemy.dialects.postgresql import ARRAY
-from database import Base
+from app.database import Base
 
 class VisualAsset(Base):
     __tablename__ = "visual_assets"

@@ -1,29 +1,19 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List
 from datetime import datetime
-from app.models.models import VisualType
 
-class VisualAssetCreate(BaseModel):
+class VisualAssetBase(BaseModel):
     title: str
-    type: VisualType
-    description: Optional[str] = None
+    description: str
+    type: str
     image_url: str
-    tags: Optional[List[str]] = None
+    tags: List[str] = []
 
-class VisualAssetUpdate(BaseModel):
-    title: Optional[str] = None
-    type: Optional[VisualType] = None
-    description: Optional[str] = None
-    image_url: Optional[str] = None
-    tags: Optional[List[str]] = None
+class VisualAssetCreate(VisualAssetBase):
+    pass
 
-class VisualAssetResponse(BaseModel):
+class VisualAssetResponse(VisualAssetBase):
     id: int
-    title: str
-    type: VisualType
-    description: Optional[str]
-    image_url: str
-    tags: Optional[List[str]]
     created_at: datetime
 
     class Config:

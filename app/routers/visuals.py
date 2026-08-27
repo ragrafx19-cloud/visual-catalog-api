@@ -6,7 +6,7 @@ import os
 from app.database import get_db
 from app.models.models import VisualAsset
 from app.models.image import Image
-from app.schemas import VisualAssetCreate, VisualAssetResponse
+from app.schemas.visuals import VisualAssetCreate, VisualAssetResponse
 from app.schemas.image import ImageOut
 
 router = APIRouter(prefix="/visuals", tags=["Visual Assets"])

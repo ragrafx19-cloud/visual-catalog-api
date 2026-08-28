@@ -29,7 +29,7 @@ def get_gallery(db: Session = Depends(get_db)):
 # ---------------------------
 @router.get("/", response_model=List[VisualAssetResponse])
 def get_visuals(
-    type: Optional[VisualType] = None,
+    type: Optional[str] = None,
     tag: Optional[str] = None,
     skip: int = 0,
     limit: int = 100,
@@ -127,7 +127,7 @@ def delete_visual(visual_id: int, db: Session = Depends(get_db)):
 def search_visuals(
     title: Optional[str] = None,
     tag: Optional[str] = None,
-    type: Optional[VisualType] = None,
+    type: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
     query = db.query(VisualAsset)

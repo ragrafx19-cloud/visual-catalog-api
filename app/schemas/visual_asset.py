@@ -1,11 +1,10 @@
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
-from app.models.models import VisualType
 
 class VisualAssetBase(BaseModel):
     title: str
-    type: VisualType
+    type: str
     description: Optional[str] = None
     image_url: Optional[str] = None
     tags: Optional[List[str]] = None
@@ -15,7 +14,7 @@ class VisualAssetCreate(VisualAssetBase):
 
 class VisualAssetUpdate(BaseModel):
     title: Optional[str] = None
-    type: Optional[VisualType] = None
+    type: Optional[str] = None
     description: Optional[str] = None
     image_url: Optional[str] = None
     tags: Optional[List[str]] = None

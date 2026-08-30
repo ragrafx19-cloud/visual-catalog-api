@@ -41,7 +41,7 @@ def get_visuals(
         query = query.filter(VisualAsset.type == type)
 
     if tag:
-        query = query.filter(VisualAsset.tags.contains(tag))
+        query = query.filter(VisualAsset.tags.contains([tag]))
 
     return query.offset(skip).limit(limit).all()
 
@@ -69,7 +69,7 @@ def create_visual(payload: VisualAssetCreate, db: Session = Depends(get_db)):
         type=payload.type,
         description=payload.description,
         image_url=payload.image_url,
-        tags=tags_str
+        tags=payload.tags or []
     )
 
     db.add(new_visual)
@@ -97,7 +97,7 @@ def update_visual(visual_id: int, payload: VisualAssetUpdate, db: Session = Depe
     if payload.image_url is not None:
         visual.image_url = payload.image_url
     if payload.tags is not None:
-        visual.tags = ",".join(payload.tags)
+        visual.tags = payload.tags
 
     db.commit()
     db.refresh(visual)
@@ -136,7 +136,7 @@ def search_visuals(
         query = query.filter(VisualAsset.title.ilike(f"%{title}%"))
 
     if tag:
-        query = query.filter(VisualAsset.tags.contains(tag))
+        query = query.filter(VisualAsset.tags.contains([tag]))
 
     if type:
         query = query.filter(VisualAsset.type == type)

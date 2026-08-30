@@ -62,8 +62,6 @@ def get_visual_by_id(visual_id: int, db: Session = Depends(get_db)):
 # ---------------------------
 @router.post("/", response_model=VisualAssetResponse)
 def create_visual(payload: VisualAssetCreate, db: Session = Depends(get_db)):
-    tags_str = ",".join(payload.tags) if payload.tags else None
-
     new_visual = VisualAsset(
         title=payload.title,
         type=payload.type,

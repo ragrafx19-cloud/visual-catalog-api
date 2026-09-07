@@ -13,7 +13,23 @@ from app.schemas import (
 )
 from app.schemas.image import ImageOut
 
+from fastapi import UploadFile, File, HTTPException
+from azure.storage.blob import BlobServiceClient
+import os
+import uuid
+
+
 router = APIRouter(prefix="/visuals", tags=["Visual Assets"])
+
+AZURE_STORAGE_ACCOUNT = os.getenv("AZURE_STORAGE_ACCOUNT")
+AZURE_STORAGE_KEY = os.getenv("AZURE_STORAGE_KEY")
+AZURE_CONTAINER_NAME = os.getenv("AZURE_CONTAINER_NAME")
+
+blob_service_client = BlobServiceClient(
+    f"https://{AZURE_STORAGE_ACCOUNT}.blob.core.windows.net",
+    credential=AZURE_STORAGE_KEY
+)
+
 
 # ---------------------------
 # GALLERY ENDPOINT
@@ -41,7 +57,7 @@ def get_visuals(
         query = query.filter(VisualAsset.type == type)
 
     if tag:
-        query = query.filter(VisualAsset.tags.contains([tag]))
+        query = query.filter(VisualAsset.tags.contains(tag))
 
     return query.offset(skip).limit(limit).all()
 
@@ -134,7 +150,7 @@ def search_visuals(
         query = query.filter(VisualAsset.title.ilike(f"%{title}%"))
 
     if tag:
-        query = query.filter(VisualAsset.tags.contains([tag]))
+        query = query.filter(VisualAsset.tags.contains(tag))
 
     if type:
         query = query.filter(VisualAsset.type == type)
@@ -143,37 +159,27 @@ def search_visuals(
 
 
 # ---------------------------
-# UPLOAD IMAGE
+# UPLOAD IMAGE TO AZURE BLOB STORAGE
 # ---------------------------
-UPLOAD_DIR = "uploaded_images"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+@router.post("/upload-image")
+async def upload_image(file: UploadFile = File(...)):
+    try:
+        extension = file.filename.split(".")[-1]
+        blob_name = f"{uuid.uuid4()}.{extension}"
 
-@router.post("/upload-image", response_model=ImageOut)
-async def upload_image(
-    file: UploadFile = File(...),
-    description: str | None = None,
-    tags: str | None = None,
-    category: str | None = None,
-    db: Session = Depends(get_db)
-):
-    if not file.content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="File must be an image")
+        blob_client = blob_service_client.get_blob_client(
+            container=AZURE_CONTAINER_NAME,
+            blob=blob_name
+        )
 
-    file_path = os.path.join(UPLOAD_DIR, file.filename)
-    with open(file_path, "wb") as buffer:
-        buffer.write(await file.read())
+        await blob_client.upload_blob(file.file, overwrite=True)
 
-    file_url = f"http://127.0.0.1:8000/{UPLOAD_DIR}/{file.filename}"
+        url = (
+            f"https://{AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/"
+            f"{AZURE_CONTAINER_NAME}/{blob_name}"
+        )
 
-    new_image = Image(
-        filename=file.filename,
-        url=file_url,
-        description=description,
-        tags=tags,
-        category=category,
-    )
-    db.add(new_image)
-    db.commit()
-    db.refresh(new_image)
+        return {"filename": blob_name, "url": url}
 
-    return new_image
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

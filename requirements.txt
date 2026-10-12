@@ -10,3 +10,4 @@ azure-storage-blob
 psycopg2-binary
 asyncpg
 aiosqlite
+greenlet

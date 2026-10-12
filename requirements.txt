@@ -8,3 +8,5 @@ jinja2
 aiofiles
 azure-storage-blob
 psycopg2-binary
+asyncpg
+aiosqlite

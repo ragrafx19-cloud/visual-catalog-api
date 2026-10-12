@@ -1,25 +1,43 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
 import os
+
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    create_async_engine
+)
+
+from sqlalchemy.orm import (
+    declarative_base,
+    sessionmaker
+)
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-engine = create_engine(
+# Render/PostgreSQL
+if DATABASE_URL:
+    DATABASE_URL = DATABASE_URL.replace(
+        "postgresql://",
+        "postgresql+asyncpg://",
+        1
+    )
+
+# Local SQLite
+else:
+    DATABASE_URL = "sqlite+aiosqlite:///./local.db"
+
+engine = create_async_engine(
     DATABASE_URL,
-    pool_pre_ping=True
+    echo=True
 )
 
 SessionLocal = sessionmaker(
-    autocommit=False,
-    autoflush=False,
-    bind=engine
+    bind=engine,
+    class_=AsyncSession,
+    expire_on_commit=False
 )
 
 Base = declarative_base()
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+
+async def get_db():
+    async with SessionLocal() as session:
+        yield session

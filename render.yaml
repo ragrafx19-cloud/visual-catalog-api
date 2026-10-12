@@ -7,4 +7,5 @@ services:
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: DATABASE_URL
-        value: postgresql://visual_catalog_db_user:CcZc2VaSvaFxV0dDwahG5UIHSHwihW47@dpg-d9rvd8m7bikc738lall0-a/visual_catalog_db
+#        value: postgresql://visual_catalog_db_user:CcZc2VaSvaFxV0dDwahG5UIHSHwihW47@dpg-d9rvd8m7bikc738lall0-a/visual_catalog_db
+        sync: false

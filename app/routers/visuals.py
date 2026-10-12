@@ -101,3 +101,4 @@ async def upload_image(
     db.refresh(new_image)
 
     return new_image
+

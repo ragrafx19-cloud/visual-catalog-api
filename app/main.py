@@ -3,10 +3,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.database import Base, engine
-from app.models import models
+import app.models
+# from app.models import models
 from app.routers.visuals_router import router as visuals_router
 
-Base.metadata.create_all(bind=engine)
+from app.routers.visuals_crud_router import router as visuals_crud_router
+
+# Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Visual Catalog API",
@@ -23,9 +26,17 @@ app.add_middleware(
 )
 
 app.include_router(visuals_router)
+app.include_router(visuals_crud_router)
 
 @app.get("/")
 def root():
     return {"message": "Visual Catalog API is running!"}
 
 app.mount("/uploaded_images", StaticFiles(directory="uploaded_images"), name="uploaded_images")
+
+
+@app.on_event("startup")
+async def startup_event():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+

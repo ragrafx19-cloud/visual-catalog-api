@@ -59,7 +59,12 @@ def get_visuals(
     if tag:
         query = query.filter(VisualAsset.tags.contains(tag))
 
-    return query.offset(skip).limit(limit).all()
+    results = query.offset(skip).limit(limit).all()
+
+    for v in results:
+        v.tags = v.tags.split(",") if v.tags else []
+
+    return results
 
 
 # ---------------------------
@@ -70,7 +75,11 @@ def get_visual_by_id(visual_id: int, db: Session = Depends(get_db)):
     visual = db.query(VisualAsset).filter(VisualAsset.id == visual_id).first()
     if not visual:
         raise HTTPException(status_code=404, detail="Visual asset not found")
+
+    visual.tags = visual.tags.split(",") if visual.tags else []
+
     return visual
+
 
 
 # ---------------------------
@@ -155,7 +164,13 @@ def search_visuals(
     if type:
         query = query.filter(VisualAsset.type == type)
 
-    return query.all()
+    results = query.all()
+
+    for v in results:
+        v.tags = v.tags.split(",") if v.tags else []
+
+    return results
+
 
 
 # ---------------------------

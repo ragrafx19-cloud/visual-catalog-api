@@ -7,7 +7,7 @@ import app.models
 # from app.models import models
 from app.routers.visuals_router import router as visuals_router
 
-from app.routers.visuals_crud_router import router as visuals_crud_router
+# from app.routers.visuals_crud_router import router as visuals_crud_router
 
 # Base.metadata.create_all(bind=engine)
 
@@ -26,7 +26,7 @@ app.add_middleware(
 )
 
 app.include_router(visuals_router)
-app.include_router(visuals_crud_router)
+# app.include_router(visuals_crud_router)
 
 @app.get("/")
 def root():

@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
-from sqlalchemy.orm import Session
+# from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from typing import List, Optional
 import os
 
@@ -35,7 +37,7 @@ blob_service_client = BlobServiceClient(
 # GALLERY ENDPOINT
 # ---------------------------
 @router.get("/gallery", response_model=List[ImageOut])
-def get_gallery(db: Session = Depends(get_db)):
+def get_gallery(db: AsyncSession = Depends(get_db)):
     images = db.query(Image).order_by(Image.created_at.desc()).all()
     return images
 
@@ -44,34 +46,34 @@ def get_gallery(db: Session = Depends(get_db)):
 # GET ALL VISUALS (with filters)
 # ---------------------------
 @router.get("/", response_model=List[VisualAssetResponse])
-def get_visuals(
+async def get_visuals(
     type: Optional[str] = None,
     tag: Optional[str] = None,
     skip: int = 0,
     limit: int = 100,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
-    query = db.query(VisualAsset)
+    stmt = select(VisualAsset)
 
     if type:
-        query = query.filter(VisualAsset.type == type)
+        stmt = stmt.where(VisualAsset.type == type)
+
+    result = await db.execute(stmt)
+
+    visuals = result.scalars().all()
 
     if tag:
-        query = query.filter(VisualAsset.tags.contains(tag))
+        visuals = [
+            v for v in visuals
+            if v.tags and tag in v.tags
+        ]
 
-    results = query.offset(skip).limit(limit).all()
-
-    for v in results:
-        v.tags = v.tags.split(",") if v.tags else []
-
-    return results
-
-
+    return visuals[skip:skip + limit]
 # ---------------------------
 # GET VISUAL BY ID
 # ---------------------------
 @router.get("/{visual_id}", response_model=VisualAssetResponse)
-def get_visual_by_id(visual_id: int, db: Session = Depends(get_db)):
+def get_visual_by_id(visual_id: int, db: AsyncSession = Depends(get_db)):
     visual = db.query(VisualAsset).filter(VisualAsset.id == visual_id).first()
     if not visual:
         raise HTTPException(status_code=404, detail="Visual asset not found")
@@ -86,7 +88,7 @@ def get_visual_by_id(visual_id: int, db: Session = Depends(get_db)):
 # CREATE NEW VISUAL
 # ---------------------------
 @router.post("/", response_model=VisualAssetResponse)
-def create_visual(payload: VisualAssetCreate, db: Session = Depends(get_db)):
+def create_visual(payload: VisualAssetCreate, db: AsyncSession = Depends(get_db)):
     new_visual = VisualAsset(
         title=payload.title,
         type=payload.type,
@@ -106,7 +108,7 @@ def create_visual(payload: VisualAssetCreate, db: Session = Depends(get_db)):
 # UPDATE VISUAL
 # ---------------------------
 @router.put("/{visual_id}", response_model=VisualAssetResponse)
-def update_visual(visual_id: int, payload: VisualAssetUpdate, db: Session = Depends(get_db)):
+def update_visual(visual_id: int, payload: VisualAssetUpdate, db: AsyncSession = Depends(get_db)):
     visual = db.query(VisualAsset).filter(VisualAsset.id == visual_id).first()
     if not visual:
         raise HTTPException(status_code=404, detail="Visual asset not found")
@@ -132,7 +134,7 @@ def update_visual(visual_id: int, payload: VisualAssetUpdate, db: Session = Depe
 # DELETE VISUAL
 # ---------------------------
 @router.delete("/{visual_id}")
-def delete_visual(visual_id: int, db: Session = Depends(get_db)):
+def delete_visual(visual_id: int, db: AsyncSession = Depends(get_db)):
     visual = db.query(VisualAsset).filter(VisualAsset.id == visual_id).first()
     if not visual:
         raise HTTPException(status_code=404, detail="Visual asset not found")
@@ -151,7 +153,7 @@ def search_visuals(
     title: Optional[str] = None,
     tag: Optional[str] = None,
     type: Optional[str] = None,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     query = db.query(VisualAsset)
 

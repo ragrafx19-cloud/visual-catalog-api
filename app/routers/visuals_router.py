@@ -73,12 +73,23 @@ async def get_visuals(
 # GET VISUAL BY ID
 # ---------------------------
 @router.get("/{visual_id}", response_model=VisualAssetResponse)
-def get_visual_by_id(visual_id: int, db: AsyncSession = Depends(get_db)):
-    visual = db.query(VisualAsset).filter(VisualAsset.id == visual_id).first()
-    if not visual:
-        raise HTTPException(status_code=404, detail="Visual asset not found")
+async def get_visual_by_id(
+    visual_id: int,
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(
+        select(VisualAsset).where(
+            VisualAsset.id == visual_id
+        )
+    )
 
-    visual.tags = visual.tags.split(",") if visual.tags else []
+    visual = result.scalar_one_or_none()
+
+    if not visual:
+        raise HTTPException(
+            status_code=404,
+            detail="Visual asset not found"
+        )
 
     return visual
 
@@ -88,7 +99,10 @@ def get_visual_by_id(visual_id: int, db: AsyncSession = Depends(get_db)):
 # CREATE NEW VISUAL
 # ---------------------------
 @router.post("/", response_model=VisualAssetResponse)
-def create_visual(payload: VisualAssetCreate, db: AsyncSession = Depends(get_db)):
+async def create_visual(
+    payload: VisualAssetCreate,
+    db: AsyncSession = Depends(get_db)
+):
     new_visual = VisualAsset(
         title=payload.title,
         type=payload.type,
@@ -98,11 +112,11 @@ def create_visual(payload: VisualAssetCreate, db: AsyncSession = Depends(get_db)
     )
 
     db.add(new_visual)
-    db.commit()
-    db.refresh(new_visual)
+
+    await db.commit()
+    await db.refresh(new_visual)
 
     return new_visual
-
 
 # ---------------------------
 # UPDATE VISUAL

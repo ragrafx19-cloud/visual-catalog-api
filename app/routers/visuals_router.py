@@ -37,10 +37,18 @@ blob_service_client = BlobServiceClient(
 # GALLERY ENDPOINT
 # ---------------------------
 @router.get("/gallery", response_model=List[ImageOut])
-def get_gallery(db: AsyncSession = Depends(get_db)):
-    images = db.query(Image).order_by(Image.created_at.desc()).all()
-    return images
+async def get_gallery(
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(
+        select(Image).order_by(
+            Image.created_at.desc()
+        )
+    )
 
+    images = result.scalars().all()
+
+    return images
 
 # ---------------------------
 # GET ALL VISUALS (with filters)
@@ -121,72 +129,103 @@ async def create_visual(
 # ---------------------------
 # UPDATE VISUAL
 # ---------------------------
+
 @router.put("/{visual_id}", response_model=VisualAssetResponse)
-def update_visual(visual_id: int, payload: VisualAssetUpdate, db: AsyncSession = Depends(get_db)):
-    visual = db.query(VisualAsset).filter(VisualAsset.id == visual_id).first()
+async def update_visual(
+    visual_id: int,
+    payload: VisualAssetUpdate,
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(
+        select(VisualAsset).where(VisualAsset.id == visual_id)
+    )
+
+    visual = result.scalar_one_or_none()
+
     if not visual:
-        raise HTTPException(status_code=404, detail="Visual asset not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Visual asset not found"
+        )
 
     if payload.title is not None:
         visual.title = payload.title
+
     if payload.type is not None:
         visual.type = payload.type
+
     if payload.description is not None:
         visual.description = payload.description
+
     if payload.image_url is not None:
         visual.image_url = payload.image_url
+
     if payload.tags is not None:
         visual.tags = payload.tags
 
-    db.commit()
-    db.refresh(visual)
+    await db.commit()
+    await db.refresh(visual)
 
     return visual
-
-
 # ---------------------------
 # DELETE VISUAL
 # ---------------------------
 @router.delete("/{visual_id}")
-def delete_visual(visual_id: int, db: AsyncSession = Depends(get_db)):
-    visual = db.query(VisualAsset).filter(VisualAsset.id == visual_id).first()
+async def delete_visual(
+    visual_id: int,
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(
+        select(VisualAsset).where(VisualAsset.id == visual_id)
+    )
+
+    visual = result.scalar_one_or_none()
+
     if not visual:
-        raise HTTPException(status_code=404, detail="Visual asset not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Visual asset not found"
+        )
 
-    db.delete(visual)
-    db.commit()
+    await db.delete(visual)
+    await db.commit()
 
-    return {"message": "Visual asset deleted successfully"}
-
-
+    return {
+        "message": "Visual asset deleted successfully"
+    }
 # ---------------------------
 # SEARCH VISUALS
 # ---------------------------
 @router.get("/search", response_model=List[VisualAssetResponse])
-def search_visuals(
+async def search_visuals(
     title: Optional[str] = None,
     tag: Optional[str] = None,
     type: Optional[str] = None,
     db: AsyncSession = Depends(get_db)
 ):
-    query = db.query(VisualAsset)
+    stmt = select(VisualAsset)
 
     if title:
-        query = query.filter(VisualAsset.title.ilike(f"%{title}%"))
-
-    if tag:
-        query = query.filter(VisualAsset.tags.contains(tag))
+        stmt = stmt.where(
+            VisualAsset.title.ilike(f"%{title}%")
+        )
 
     if type:
-        query = query.filter(VisualAsset.type == type)
+        stmt = stmt.where(
+            VisualAsset.type == type
+        )
 
-    results = query.all()
+    result = await db.execute(stmt)
 
-    for v in results:
-        v.tags = v.tags.split(",") if v.tags else []
+    visuals = result.scalars().all()
 
-    return results
+    if tag:
+        visuals = [
+            v for v in visuals
+            if v.tags and tag in v.tags
+        ]
 
+    return visuals
 
 
 # ---------------------------

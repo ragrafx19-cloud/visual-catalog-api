@@ -51,6 +51,41 @@ async def get_gallery(
     return images
 
 # ---------------------------
+# SEARCH VISUALS
+# ---------------------------
+@router.get("/search", response_model=List[VisualAssetResponse])
+async def search_visuals(
+    title: Optional[str] = None,
+    tag: Optional[str] = None,
+    type: Optional[str] = None,
+    db: AsyncSession = Depends(get_db)
+):
+    stmt = select(VisualAsset)
+
+    if title:
+        stmt = stmt.where(
+            VisualAsset.title.ilike(f"%{title}%")
+        )
+
+    if type:
+        stmt = stmt.where(
+            VisualAsset.type == type
+        )
+
+    result = await db.execute(stmt)
+
+    visuals = result.scalars().all()
+
+    if tag:
+        visuals = [
+            v for v in visuals
+            if v.tags and tag in v.tags
+        ]
+
+    return visuals
+
+
+# ---------------------------
 # GET ALL VISUALS (with filters)
 # ---------------------------
 @router.get("/", response_model=List[VisualAssetResponse])
@@ -193,40 +228,6 @@ async def delete_visual(
     return {
         "message": "Visual asset deleted successfully"
     }
-# ---------------------------
-# SEARCH VISUALS
-# ---------------------------
-@router.get("/search", response_model=List[VisualAssetResponse])
-async def search_visuals(
-    title: Optional[str] = None,
-    tag: Optional[str] = None,
-    type: Optional[str] = None,
-    db: AsyncSession = Depends(get_db)
-):
-    stmt = select(VisualAsset)
-
-    if title:
-        stmt = stmt.where(
-            VisualAsset.title.ilike(f"%{title}%")
-        )
-
-    if type:
-        stmt = stmt.where(
-            VisualAsset.type == type
-        )
-
-    result = await db.execute(stmt)
-
-    visuals = result.scalars().all()
-
-    if tag:
-        visuals = [
-            v for v in visuals
-            if v.tags and tag in v.tags
-        ]
-
-    return visuals
-
 
 # ---------------------------
 # UPLOAD IMAGE TO AZURE BLOB STORAGE

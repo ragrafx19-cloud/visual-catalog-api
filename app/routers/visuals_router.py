@@ -243,7 +243,7 @@ async def upload_image(file: UploadFile = File(...)):
             blob=blob_name
         )
 
-        await blob_client.upload_blob(file.file, overwrite=True)
+        blob_client.upload_blob(file.file, overwrite=True)
 
         url = (
             f"https://{AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/"

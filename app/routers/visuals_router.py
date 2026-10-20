@@ -36,20 +36,15 @@ blob_service_client = BlobServiceClient(
 # ---------------------------
 # GALLERY ENDPOINT
 # ---------------------------
-@router.get("/gallery", response_model=List[ImageOut])
-async def get_gallery(
-    db: AsyncSession = Depends(get_db)
-):
-    result = await db.execute(
-        select(Image).order_by(
-            Image.created_at.desc()
-        )
+@router.get("/gallery", response_model=List[VisualAssetResponse])
+def get_gallery(db: Session = Depends(get_db)):
+    visuals = (
+        db.query(VisualAsset)
+        .order_by(VisualAsset.created_at.desc())
+        .all()
     )
 
-    images = result.scalars().all()
-
-    return images
-
+    return visuals
 # ---------------------------
 # SEARCH VISUALS
 # ---------------------------

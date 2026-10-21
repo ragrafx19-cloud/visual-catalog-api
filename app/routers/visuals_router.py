@@ -16,7 +16,7 @@ from app.schemas import (
 from app.schemas.image import ImageOut
 
 from fastapi import UploadFile, File, HTTPException
-from azure.storage.blob import BlobServiceClient
+from azure.storage.blob import (BlobServiceClient, ContentSettings)
 import os
 import uuid
 
@@ -234,22 +234,40 @@ async def delete_visual(
 @router.post("/upload-image")
 async def upload_image(file: UploadFile = File(...)):
     try:
+        # Get original file extension
         extension = file.filename.split(".")[-1]
+
+        # Generate unique file name
         blob_name = f"{uuid.uuid4()}.{extension}"
 
+        # Create blob client
         blob_client = blob_service_client.get_blob_client(
             container=AZURE_CONTAINER_NAME,
             blob=blob_name
         )
 
-        blob_client.upload_blob(file.file, overwrite=True)
+        # Upload with proper content type
+        blob_client.upload_blob(
+            file.file,
+            overwrite=True,
+            content_settings=ContentSettings(
+                content_type=file.content_type
+            )
+        )
 
+        # Build public URL
         url = (
             f"https://{AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/"
             f"{AZURE_CONTAINER_NAME}/{blob_name}"
         )
 
-        return {"filename": blob_name, "url": url}
+        return {
+            "filename": blob_name,
+            "url": url
+        }
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
